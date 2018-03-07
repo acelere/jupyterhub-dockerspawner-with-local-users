@@ -5,17 +5,6 @@
 import os
 
 
-#from https://github.com/jupyterhub/dockerspawner/issues/172
-from dockerspawner import DockerSpawner
-class MyDockerSpawner(DockerSpawner):
-   def start(self):
-      #username is self.user.name
-      #THIS DID NOT WORK - error unhashable
-      #changed approach >> adding to the volumes dictionary directly below
-      self.volumes[ '/srv/jhub_persistent/data/' : '/home/jovyan/data/' ]
-      return super().start()
-
-
 #from: https://github.com/jupyterhub/jupyterhub/blob/master/examples/bootstrap-script/jupyterhub_config.py
 def create_dir_hook(spawner):
    username = spawner.user.name
