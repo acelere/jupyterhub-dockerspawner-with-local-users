@@ -27,25 +27,10 @@ After installing docker, you need to add your user to the docker group to allow 
 ```bash
 usermod -aG docker <your user name here> 
 ```
-Next up is to install JupyterHub, as described in the <a> href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a>
+Next up is to install JupyterHub, as described in the <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a>
 
 Let's now create the persistent storage areas, since each docker container will be spawned "new" each time. In my case, I wanted a storage area for each user and a common area to allow for big data files exchange.
-It is a good idea (as explained <a href="http://jupyterhub.readthedocs.io/en/latest/reference/technical-overview.html">here</a>) to put these files at something like /srv/jupyterhub. In my case, I chose /srv/jhub_persistent:
-```bash
-sudo mkdir /srv/jhub_persistent/ 
-```
-Then, we need to set permissions, so all can access:
-```bash
-sudo chmod -R 765 /srv/jhub_persistent 
-```
-And we will create a directory for team data exchange:
-```bash
-sudo mkdir /srv/jhub_persistent/data 
-```
-To enable this persistent directory to be accessed by the docker user, we need to set permissions and acl as decribed <a href="https://github.com/jupyterhub/dockerspawner/issues/160">here</a>. as minrk explains:
-
-    The s in chmod means that any new files created in that directory, by any user (including root), will be owned by the same group as the parent, which we set to 100.
-    The setfacl makes it so that any new files have default permissions including full group access.
+It is a good idea (as explained <a href="http://jupyterhub.readthedocs.io/en/latest/reference/technical-overview.html">here</a>) to put these files into something like /srv/jupyterhub. In my case, I chose /srv/jhub_persistent:
 
 ```bash
 # create the notebook directory
@@ -60,7 +45,12 @@ chmod g+rws "$NBDIR"
 # set the default permissions for new files to group-writable
 setfacl -d -m g::rwx "$NBDIR"
 ```
-  
+To enable this persistent directory to be accessed by the docker user, we needed to set permissions and acl (already in the above snippet and as decribed <a href="https://github.com/jupyterhub/dockerspawner/issues/160">here</a>). As minrk explains:
+
+    The s in chmod means that any new files created in that directory, by any user (including root), will be owned by the same group as the parent, which we set to 100.
+    The setfacl makes it so that any new files have default permissions including full group access.
+
+
 At this point, we are now ready to build our container.
 Use the dockerfile from this repository, as a starter, and modify it to your needs.
 Here is a breakdown of the dockerfile with explanations:
@@ -98,7 +88,7 @@ Then, we create the directories we want to mount the persistent data directories
 RUN mkdir /home/jovyan/work/data
 RUN chown -R jovyan /home/jovyan/work
 ```
-And last, we tell the container to runt the command to start the jupyterhub-singleuser:
+And last, we tell the container to run the command to start the jupyterhub-singleuser:
 ```
 CMD ["jupyterhub-singleuser"]
 ```
