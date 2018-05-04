@@ -5,6 +5,17 @@
 import os
 
 
+#from https://github.com/jupyterhub/dockerspawner/issues/172
+from dockerspawner import DockerSpawner
+class MyDockerSpawner(DockerSpawner):
+   def start(self):
+      #username is self.user.name
+      #THIS DID NOT WORK - error unhashable
+      #changed approach >> adding to the volumes dictionary directly below
+      self.volumes[ '/srv/jhub_persistent/data/' : '/home/jovyan/data/' ]
+      return super().start()
+
+
 #from: https://github.com/jupyterhub/jupyterhub/blob/master/examples/bootstrap-script/jupyterhub_config.py
 def create_dir_hook(spawner):
    username = spawner.user.name
@@ -26,7 +37,7 @@ c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
 c.Spawner.pre_spawn_hook = create_dir_hook
 
 # Spawn containers from this image
-c.DockerSpawner.image = 'YOUR_CONTAINER_NAME_HERE'
+c.DockerSpawner.image = 'andre04'
 
 notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 c.DockerSpawner.notebook_dir = notebook_dir
@@ -35,5 +46,5 @@ c.DockerSpawner.notebook_dir = notebook_dir
 c.DockerSpawner.volumes = { '/srv/jhub_persistent/{username}': notebook_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data' }
 
 #had to se the IP otherwise got an error
-c.JupyterHub.hub_ip = 'XXX.YYY.ZZZ.AAA' #SET YOUR IP HERE
+c.JupyterHub.hub_ip = '192.168.2.23'
 
