@@ -1,9 +1,8 @@
 FROM python:3.6.5
-RUN apt-get update
-RUN apt-get upgrade -y
-RUN apt-get install zip -y
-RUN apt-get install octave -y
-RUN apt-get install gnuplot -y
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install zip \
+    octave \
+    gnuplot -y
 RUN pip3 install --no-cache-dir --upgrade pip
 RUN pip3 install \
     jupyterhub \
@@ -23,6 +22,7 @@ RUN apt-get install octave-odepkg \
 #    octave-io \
     octave-quaternion \
     octave-signal -y
+RUN pip3 install cvxpy
 
 # create a user, since we don't want to run as root
 RUN useradd -m jovyan
