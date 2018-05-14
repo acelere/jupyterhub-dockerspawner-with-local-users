@@ -2,7 +2,11 @@ FROM python:3.6.5
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install zip \
     octave \
-    gnuplot -y
+    gnuplot \
+    libblas3gf \
+    libblas-dev \
+    liblapack3gf \
+    liblapack-dev -y
 RUN pip3 install --no-cache-dir --upgrade pip
 RUN pip3 install \
     jupyterhub \
