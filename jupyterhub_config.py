@@ -21,7 +21,7 @@ def create_dir_hook(spawner):
    username = spawner.user.name
    volume_path = os.path.join('/srv/jhub_persistent/', username)
    if not os.path.exists(volume_path):
-      os.mkdir(volume_path, 0o755)
+      os.mkdir(volume_path, 0o765)
       pass
    pass
 
