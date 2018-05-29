@@ -21,7 +21,7 @@ def create_dir_hook(spawner):
    username = spawner.user.name
    volume_path = os.path.join('/srv/jhub_persistent/', username)
    if not os.path.exists(volume_path):
-      os.mkdir(volume_path, 0o765)
+      os.mkdir(volume_path, 0o775)
       pass
    pass
 
@@ -37,7 +37,7 @@ c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
 c.Spawner.pre_spawn_hook = create_dir_hook
 
 # Spawn containers from this image
-c.DockerSpawner.image = 'andre04'
+c.DockerSpawner.image = 'andre06'
 
 notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 c.DockerSpawner.notebook_dir = notebook_dir
