@@ -29,6 +29,15 @@ usermod -aG docker <your user name here>
 ```
 Next up is to install JupyterHub, as described in the <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a>
 
+You may have to manually install dockerspawner too if it did not install with jupyterhub. In order to find out, you can test by typing 
+```python
+python3 -c 'import dockerspawner'
+```
+and checking if there are any errors. If you are greeted with an error, you need to manually install dockerspawner, otherwise you are good to go.
+```python
+pip3 install dockerspawner
+``` 
+
 Let's now create the persistent storage areas, since each docker container will be spawned "new" each time. In my case, I wanted a storage area for each user and a common area to allow for big data files exchange.
 It is a good idea (as explained <a href="http://jupyterhub.readthedocs.io/en/latest/reference/technical-overview.html">here</a>) to put these files into something like /srv/jupyterhub. In my case, I chose /srv/jhub_persistent:
 
