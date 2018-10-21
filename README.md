@@ -12,8 +12,8 @@
 
 ## Installation
 
-<p>Start from a fresh ubuntu install. In my case, I used 16.04 on a computer connected to my local network.</p>
-<p>To make things easy, after the installation was complete, I went into the router configuration and fixed the IP for that computer, using its MAC address. This is to ensure that when running JupyterHub, the IP address is fixed</p>
+<p>Start from a fresh ubuntu install. I have used 18.04 on a computer connected to my local network.</p>
+<p>To make things easy, after the installation was complete, I went into the router configuration and fixed the IP for that computer, using its MAC address. This is to ensure that when running JupyterHub, the IP address is fixed.</p>
 <p>Next, install docker as per <a href="https://docs.docker.com/install/linux/docker-ce/ubuntu/#supported-storage-drivers">this link</a></p>
 Alternatively, you can install by:
 
@@ -64,12 +64,9 @@ At this point, we are now ready to build our container.
 Use the dockerfile from this repository, as a starter, and modify it to your needs.
 Here is a breakdown of the dockerfile with explanations:
 
-First, start with a fresh python image, update, upgrade, update pip and install the packages you want:
+First, start with a fresh python image and install the packages you want. Below is just a snipet and you should look at the Dockerfile that is in this repo:
 ```
-FROM python:3.6
-RUN apt update
-RUN apt upgrade -y
-RUN pip3 install --upgrade pip
+FROM python:3.6.6
 RUN pip3 install \
     jupyterhub \
     notebook \
@@ -103,12 +100,15 @@ CMD ["jupyterhub-singleuser"]
 ```
 After putting this dockerfile in your server, it is time to build the container. Run the following from within the same directory you placed the dockerfile in:
 ```bash
-docker build -t <choose_your_docker_container_name> --build-arg JUPYTERHUB_VERSION=0.8.1 . 
+docker build -t <choose_your_docker_container_name> --build-arg JUPYTERHUB_VERSION=0.9.4 . 
 ```
-It is very important to pin the JUPYTERHUB_VERSION, otherwise you get an error later on.
+It is very important to pin the JUPYTERHUB_VERSION, otherwise you get an error later on. You need to use the same version (usually latest) as of your install.
 
 With the docker container built, it is time to make your jupyterhub_config.py file.
 Again, you can start with the one in this repo, adjusting the container name to whatever you chose when building it just above.
+
+For Jupyterlab interface, uncomment the line that sets the default URL to '/lab'
+
 Key things for your jupyterhub_config.py file:
 As explained <a href=" https://github.com/jupyterhub/jupyterhub/blob/master/examples/bootstrap-script/jupyterhub_config.py">here</a>, we mount the user directory with this bit of code (inside the jupyterhub_config.py file):
 ```
@@ -128,6 +128,10 @@ We choose the container to be spawned here (make sure the name of the container 
 # Spawn containers from this image
 c.DockerSpawner.image = 'choose_your_docker_container_name'
 ```
+# Lab as default
+# IF you want to start with Jupyterlab, uncomment line below
+#c.Spawner.default_url = '/lab'
+
 We mount the persistent directories with:
 ```
 #mount the 2 persistent directories

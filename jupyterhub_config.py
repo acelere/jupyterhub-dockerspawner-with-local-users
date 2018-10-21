@@ -37,7 +37,11 @@ c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
 c.Spawner.pre_spawn_hook = create_dir_hook
 
 # Spawn containers from this image
-c.DockerSpawner.image = 'andre06'
+c.DockerSpawner.image = 'container_44'
+
+# Lab as default
+# IF you want to start with Jupyterlab, uncomment line below
+#c.Spawner.default_url = '/lab'
 
 notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 c.DockerSpawner.notebook_dir = notebook_dir
@@ -46,5 +50,4 @@ c.DockerSpawner.notebook_dir = notebook_dir
 c.DockerSpawner.volumes = { '/srv/jhub_persistent/{username}': notebook_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data' }
 
 #had to se the IP otherwise got an error
-c.JupyterHub.hub_ip = '192.168.2.23'
-
+c.JupyterHub.hub_ip = '192.168.11.112'

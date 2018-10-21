@@ -1,13 +1,18 @@
-FROM python:3.6.5
-RUN apt-get update && apt-get upgrade -y
+FROM python:3.7
+
+RUN apt-get update
 RUN apt-get install zip \
     octave \
     gnuplot \
-    libblas3gf \
-    libblas-dev \
-    liblapack3gf \
-    liblapack-dev -y
-RUN pip3 install --no-cache-dir --upgrade pip
+    nodejs-legacy -y
+
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN apt-get install -y nodejs
+
+RUN wget https://cmake.org/files/v3.11/cmake-3.11.3-Linux-x86_64.sh \
+    && chmod 775 ./cmake-3.11.3-Linux-x86_64.sh \
+    && ./cmake-3.11.3-Linux-x86_64.sh --skip-license
+
 RUN pip3 install \
     jupyterhub \
     notebook \
@@ -18,15 +23,27 @@ RUN pip3 install \
     matplotlib \
     scipy \
     bqplot \
-    octave_kernel
+    octave_kernel \
+    sympy \
+    ipyvolume
+RUN pip3 install cvxpy
+
+RUN pip3 install jupyterlab
+
 RUN pip3 install https://github.com/ipython-contrib/jupyter_contrib_nbextensions/tarball/master
+
 RUN apt-get install octave-odepkg \
     octave-control \
-#    octave-image \ 
-#    octave-io \
+    octave-image \
+    octave-io \
     octave-quaternion \
     octave-signal -y
-RUN pip3 install cvxpy
+
+RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
+RUN jupyter labextension install bqplot
+
+#codefolding not yet available in jupyterlab
+#RUN jupyter labextension install codefolding
 
 # create a user, since we don't want to run as root
 RUN useradd -m jovyan
@@ -36,6 +53,9 @@ WORKDIR $HOME
 USER jovyan
 RUN jupyter contrib nbextension install --user
 RUN jupyter nbextension enable codefolding/main
+RUN jupyter notebook --version
+#RUN jupyter serverextension enable --py jupyterlab --sys-prefix
+
 RUN mkdir /home/jovyan/work
 RUN mkdir /home/jovyan/work/data
 RUN chown -R jovyan /home/jovyan/work
