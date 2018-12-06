@@ -39,9 +39,10 @@ c.Spawner.pre_spawn_hook = create_dir_hook
 # Spawn containers from this image
 c.DockerSpawner.image = 'container_44'
 
-# Lab as default
-# IF you want to start with Jupyterlab, uncomment line below
-#c.Spawner.default_url = '/lab'
+# Lab as default, with jupyter-labhub enabled
+# IF you want to start with Jupyterlab, uncomment lines below
+c.Spawner.default_url = '/lab'
+c.Spawner.cmd = ['jupyter-labhub']
 
 notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 c.DockerSpawner.notebook_dir = notebook_dir

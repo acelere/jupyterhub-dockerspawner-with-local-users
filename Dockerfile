@@ -41,9 +41,8 @@ RUN apt-get install octave-odepkg \
 
 RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN jupyter labextension install bqplot
+RUN jupyter labextension install @jupyterlab/hub-extension
 
-#codefolding not yet available in jupyterlab
-#RUN jupyter labextension install codefolding
 
 # create a user, since we don't want to run as root
 RUN useradd -m jovyan
