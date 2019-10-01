@@ -14,6 +14,13 @@
 
 <p>Start from a fresh ubuntu install. I have used 18.04 on a computer connected to my local network.</p>
 <p>To make things easy, after the installation was complete, I went into the router configuration and fixed the IP for that computer, using its MAC address. This is to ensure that when running JupyterHub, the IP address is fixed.</p>
+<p> We are assuming root access here </p>
+<p>Install the Universe repository:</p>
+
+```bash
+add-apt-repository universe
+```
+
 <p>Next, install docker as per <a href="https://docs.docker.com/install/linux/docker-ce/ubuntu/#supported-storage-drivers">this link</a></p>
 Alternatively, you can install by:
 
@@ -27,7 +34,8 @@ After installing docker, you need to add your user to the docker group to allow 
 ```bash
 usermod -aG docker <your user name here> 
 ```
-Next up is to install JupyterHub, as described in the <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a>
+Next up is to install JupyterHub, as described in the <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a>. If your Ubuntu Server does not have nodejs installed and the apt install method does not work, you can follow this link with nodejs install instructions: <a href="https://github.com/nodesource/distributions#debinstall">nodejs_install</a>
+
 
 You may have to manually install dockerspawner too if it did not install with jupyterhub. In order to find out, you can test by typing 
 ```python
