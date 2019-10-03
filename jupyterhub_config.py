@@ -48,7 +48,7 @@ notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 c.DockerSpawner.notebook_dir = notebook_dir
 
 #mount the 2 persistent directories
-c.DockerSpawner.volumes = { '/srv/jhub_persistent/{username}': notebook_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data' }
+c.DockerSpawner.volumes = { '/srv/jhub_persistent/{raw_username}': notebook_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data' }
 
 #had to se the IP otherwise got an error
 c.JupyterHub.hub_ip = '192.168.11.112'
