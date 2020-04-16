@@ -37,18 +37,37 @@ c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
 c.Spawner.pre_spawn_hook = create_dir_hook
 
 # Spawn containers from this image
-c.DockerSpawner.image = 'container_44'
+c.DockerSpawner.image = 'c_60'
 
-# Lab as default, with jupyter-labhub enabled
-# IF you want to start with Jupyterlab, uncomment lines below
+# Lab as default
+# IF you want to start with Jupyterlab, uncomment line below
 c.Spawner.default_url = '/lab'
-c.Spawner.cmd = ['jupyter-labhub']
 
-notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
+#add jupyter-labhub
+#c.Spawner.cmd = ['jupyter-labhub']
+
+work_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
+notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan'
 c.DockerSpawner.notebook_dir = notebook_dir
 
 #mount the 2 persistent directories
-c.DockerSpawner.volumes = { '/srv/jhub_persistent/{raw_username}': notebook_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data' }
+c.DockerSpawner.volumes = { '/srv/jhub_persistent/{username}': work_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data' }
+#if the directory being created starts to get weird names, use comment above and use below.
+#c.DockerSpawner.volumes = { '/srv/jhub_persustent/{raw_username}': work_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data'}
 
-#had to se the IP otherwise got an error
-c.JupyterHub.hub_ip = '192.168.11.112'
+#SET YOUR jupyterhub IP otherwise YOU GET AN ERROR
+c.JupyterHub.hub_ip = '192.168.2.14' 
+
+
+#OPTIONAL
+#if instead of PAM user authentication you need LDAP,
+#uncomment lines below and set the correct parameters
+#LDAP Authentication
+#c.LDAPAuthenticator.bind_dn_template = [
+#    "{username}@<your domain>"
+#    ]
+#c.LDAPAuthenticator.server_address = '192.168.X.X'
+#c.LDAPAuthenticator.user_attribute = 'sAMAccountName'
+#c.LDAPAuthenticator.escape_userdn = False
+#c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
+
