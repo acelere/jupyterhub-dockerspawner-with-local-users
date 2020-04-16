@@ -46,6 +46,12 @@ Install jupyterhub:
 ```bash
 pip3 install jupyterhub --user
 ```
+Because we are using pip with the --user flag, the command jupyterhub will not be in root's path and since we need to run jupyterhub as root to allow for proper authentication, we need to add it to the path:
+```bash
+cd /
+ln -s /home/<your username>/.local/bin/jupyterhub .
+``` 
+
 
 You may have to manually install dockerspawner too if it did not install with jupyterhub. In order to find out, you can test by typing 
 ```python
