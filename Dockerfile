@@ -11,8 +11,7 @@ RUN apt-get install zip \
     octave-signal \
     gnuplot \
     r-base r-base-dev libzmq3-dev \
-    nodejs -y    
-#nodejs-legacy -y
+
 
 RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
 RUN apt-get install -y nodejs
