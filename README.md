@@ -1,5 +1,5 @@
 # jupyterhub-dockerspawner-with-local-users
-<b> THIS IS A WORK IN PROGRESS </b>
+
 <p> While learning how to implement a JupyterHub server using a dockerspawner, the tutorial available  <a href="https://github.com/jupyterhub/jupyterhub-deploy-docker">here</a> uses OAuthenticator and GitHub OAuth, which means you need a valid IP with DNS entry. </p>
 <p> Since I was trying to set up a JHub server inside my organization, and since I do not have an external IP/DNS, I had to figure out how to use the default local linux system authenticator </p>
 <p> Therefore, this JupterHub Narrative or Use Case will take you from a fresh Ubuntu install to a functioning <b>JupyterHub server</b> using the <b>default local users authenticator</b>, <b>dockerspawner</b> using a custom container, <b>persistent storage</b> for each user as well as <b>persistent shared storage</b> for the group. </p>
@@ -12,7 +12,7 @@
 
 ## Installation
 
-<p>Start from a fresh ubuntu install. I have used 18.04 on a computer connected to my local network.</p>
+<p>Start from a fresh ubuntu install. I have used 18.04.4 on a computer connected to my local network.</p>
 <p>To make things easy, after the installation was complete, I went into the router configuration and fixed the IP for that computer, using its MAC address. This is to ensure that when running JupyterHub, the IP address is fixed.</p>
 <p> We are assuming root access here </p>
 <p>Install the Universe repository:</p>
@@ -28,14 +28,24 @@ Alternatively, you can install by:
 wget https://get.docker.com
 mv index.html getdocker.sh
 chmod 755 getdocker.sh
-./getdocker.sh 
+sudo ./getdocker.sh 
 ```
 After installing docker, you need to add your user to the docker group to allow for it to start a docker container.
 ```bash
-usermod -aG docker <your user name here> 
+sudo usermod -aG docker <your user name here> 
 ```
-Next up is to install JupyterHub, as described in the <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a>. If your Ubuntu Server does not have nodejs installed and the apt install method does not work, you can follow this link with nodejs install instructions: <a href="https://github.com/nodesource/distributions#debinstall">nodejs_install</a>
+Next up is to install JupyterHub. The pre-requisites instructions in  <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a> are a little outdated and the package nodejs-legacy has been deprecated. Follow this link with nodejs install instructions: <a href="https://github.com/nodesource/distributions#debinstall">nodejs_install</a>. Just remember we will need to install the same version in our container.
 
+After nodejs is installed, we need to install the configurable-proxy:
+
+```bash
+sudo npm install -g configurable-http-proxy
+```
+
+Install jupyterhub:
+```bash
+pip3 install jupyterhub --user
+```
 
 You may have to manually install dockerspawner too if it did not install with jupyterhub. In order to find out, you can test by typing 
 ```python
@@ -43,7 +53,7 @@ python3 -c 'import dockerspawner'
 ```
 and checking if there are any errors. If you are greeted with an error, you need to manually install dockerspawner, otherwise you are good to go.
 ```python
-pip3 install dockerspawner
+pip3 install dockerspawner --user
 ``` 
 
 Let's now create the persistent storage areas, since each docker container will be spawned "new" each time. In my case, I wanted a storage area for each user and a common area to allow for big data files exchange.
@@ -52,17 +62,17 @@ It is a good idea (as explained <a href="http://jupyterhub.readthedocs.io/en/lat
 ```bash
 # create the notebook directory
 NBDIR=/srv/jhub_persistent/
-mkdir "$NBDIR"
+sudo mkdir "$NBDIR"
 # make it owned by the GID of the notebook containers.
 # This is 100 in the jupyter docker-stacks,
 # but should be whatever GID your containers run as
-chown :100 "$NBDIR"
+sudo chown :100 "$NBDIR"
 # make it group-setgid-writable
-chmod g+rws "$NBDIR"
+sudo chmod g+rws "$NBDIR"
 # set the default permissions for new files to group-writable
-setfacl -d -m g::rwx "$NBDIR"
+sudo setfacl -d -m g::rwx "$NBDIR"
 ```
-To enable this persistent directory to be accessed by the docker user, we needed to set permissions and acl (already in the above snippet and as decribed <a href="https://github.com/jupyterhub/dockerspawner/issues/160">here</a>). As minrk explains:
+To enable this persistent directory to be accessed by the docker user, we needed to set permissions and acl (already in the above snippet and as decribed <a href="https://github.com/jupyterhub/dockerspawner/issues/160">on issue 160</a>). As minrk explains:
 
     The s in chmod means that any new files created in that directory, by any user (including root), will be owned by the same group as the parent, which we set to 100.
     The setfacl makes it so that any new files have default permissions including full group access.
@@ -70,11 +80,17 @@ To enable this persistent directory to be accessed by the docker user, we needed
 
 At this point, we are now ready to build our container.
 Use the dockerfile from this repository, as a starter, and modify it to your needs.
-Here is a breakdown of the dockerfile with explanations:
+Here is a breakdown of the dockerfile with explanations. There is an example file in this repo.
 
-First, start with a fresh python image and install the packages you want. Below is just a snipet and you should look at the Dockerfile that is in this repo:
+First, start with a fresh python image and install the packages you want. Below is a simple example:
+
 ```
-FROM python:3.6.6
+FROM python:3.8.2
+
+RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
+RUN apt-get install -y nodejs
+
+
 RUN pip3 install \
     jupyterhub \
     notebook \
@@ -84,9 +100,18 @@ RUN pip3 install \
     traitlets \
     matplotlib \
     scipy \
-    bqplot
+    bqplot \
+    jupyterlab
 ```
-Second, let's create the user "jovyan" and add this user to the "users" group:
+
+Next, let's make jupyterlab default opening page:
+
+```
+RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
+RUN jupyter labextension install bqplot
+RUN jupyter labextension install @jupyterlab/hub-extension
+```
+Create the default jupyterhub container user "jovyan" and add this user to the "users" group:
 ```
 RUN useradd -m jovyan
 RUN usermod -G users jovyan
@@ -98,7 +123,8 @@ WORKDIR $HOME
 USER jovyan
 ```
 Then, we create the directories we want to mount the persistent data directories:
-```RUN mkdir /home/jovyan/work
+```
+RUN mkdir /home/jovyan/work
 RUN mkdir /home/jovyan/work/data
 RUN chown -R jovyan /home/jovyan/work
 ```
@@ -108,18 +134,28 @@ CMD ["jupyterhub-singleuser"]
 ```
 After putting this dockerfile in your server, it is time to build the container. Run the following from within the same directory you placed the dockerfile in:
 ```bash
-docker build -t <choose_your_docker_container_name> --build-arg JUPYTERHUB_VERSION=0.9.4 . 
+docker build -t <choose_your_docker_container_name> --build-arg JUPYTERHUB_VERSION=1.1.0 . 
 ```
-It is very important to pin the JUPYTERHUB_VERSION, otherwise you get an error later on. You need to use the same version (usually latest) as of your install.
 
-With the docker container built, it is time to make your jupyterhub_config.py file.
+It is **very important** to pin the JUPYTERHUB_VERSION, otherwise you get an error later on when the container will not start properly. The error message is typicall:
+```
+Unhandled error starting <username> server: Failed to get port info for...
+```
+You need to use **the same version** (usually latest) as of your install; and the container needs to be running the same jupyterhub version as well. Some info is provided  <a href="https://github.com/jupyterhub/jupyterhub/issues/709">pn issue 709</a>
+
+Note that if you get an error from the docker daemon, that is because you need to reboot the system before trying to build your container.
+
+
+With the docker container built, it is time to make your jupyterhub_config.py file. 
 Again, you can start with the one in this repo, adjusting the container name to whatever you chose when building it just above.
 
-For Jupyterlab interface, uncomment the line that sets the default URL to '/lab'
 
-Key things for your jupyterhub_config.py file:
-As explained <a href=" https://github.com/jupyterhub/jupyterhub/blob/master/examples/bootstrap-script/jupyterhub_config.py">here</a>, we mount the user directory with this bit of code (inside the jupyterhub_config.py file):
+Key things for your jupyterhub_config.py file, as explained <a href=" https://github.com/jupyterhub/jupyterhub/blob/master/examples/bootstrap-script/jupyterhub_config.py">here</a>.
+
+We mount the user directory with this bit of code (inside the jupyterhub_config.py file):
 ```
+import os
+
 def create_dir_hook(spawner):
    username = spawner.user.name
    volume_path = os.path.join('/srv/jhub_persistent/', username)
@@ -136,9 +172,18 @@ We choose the container to be spawned here (make sure the name of the container 
 # Spawn containers from this image
 c.DockerSpawner.image = 'choose_your_docker_container_name'
 ```
-# Lab as default
-# IF you want to start with Jupyterlab, uncomment line below
-#c.Spawner.default_url = '/lab'
+Lab as default
+
+```
+c.Spawner.default_url = '/lab'
+```
+
+
+This sets the notebook directory:
+```
+notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
+c.DockerSpawner.notebook_dir = notebook_dir
+```
 
 We mount the persistent directories with:
 ```

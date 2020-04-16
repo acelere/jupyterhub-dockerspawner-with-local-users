@@ -1,12 +1,11 @@
-FROM python:3.7
+FROM python:3.8.2
 
 RUN apt-get update
 RUN apt-get install zip \
     octave \
-    gnuplot \
-    nodejs-legacy -y
+    gnuplot -y
 
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
 RUN apt-get install -y nodejs
 
 RUN wget https://cmake.org/files/v3.11/cmake-3.11.3-Linux-x86_64.sh \
@@ -30,9 +29,10 @@ RUN pip3 install cvxpy
 
 RUN pip3 install jupyterlab
 
-RUN pip3 install https://github.com/ipython-contrib/jupyter_contrib_nbextensions/tarball/master
+#RUN pip3 install https://github.com/ipython-contrib/jupyter_contrib_nbextensions/tarball/master
 
-RUN apt-get install octave-odepkg \
+RUN apt-get install \
+    #octave-odepkg \ #this package not yet available for python >=3.8
     octave-control \
     octave-image \
     octave-io \
@@ -50,9 +50,9 @@ RUN usermod -G users jovyan
 ENV HOME=/home/jovyan
 WORKDIR $HOME
 USER jovyan
-RUN jupyter contrib nbextension install --user
-RUN jupyter nbextension enable codefolding/main
-RUN jupyter notebook --version
+#RUN jupyter contrib nbextension install --user
+#RUN jupyter nbextension enable codefolding/main
+#RUN jupyter notebook --version
 #RUN jupyter serverextension enable --py jupyterlab --sys-prefix
 
 RUN mkdir /home/jovyan/work
