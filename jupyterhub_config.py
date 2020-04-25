@@ -20,8 +20,10 @@ class MyDockerSpawner(DockerSpawner):
 def create_dir_hook(spawner):
    username = spawner.user.name
    volume_path = os.path.join('/srv/jhub_persistent/', username)
+   print("the volume path that I have is: ", volume_path)
    if not os.path.exists(volume_path):
       os.mkdir(volume_path, 0o775)
+      print("created folder because it did not exist...")
       pass
    pass
 
@@ -37,37 +39,35 @@ c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
 c.Spawner.pre_spawn_hook = create_dir_hook
 
 # Spawn containers from this image
-c.DockerSpawner.image = 'c_60'
+c.DockerSpawner.image = 'c_56'
 
 # Lab as default
 # IF you want to start with Jupyterlab, uncomment line below
 c.Spawner.default_url = '/lab'
 
-#add jupyter-labhub
-#c.Spawner.cmd = ['jupyter-labhub']
+
 
 work_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan'
 c.DockerSpawner.notebook_dir = notebook_dir
 
 #mount the 2 persistent directories
-c.DockerSpawner.volumes = { '/srv/jhub_persistent/{username}': work_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data' }
+#c.DockerSpawner.volumes = { '/srv/jhub_persistent/{username}': work_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data' }
+print("the work dir is: ", work_dir)
+print("the dockerspawner volumes are: ", c.DockerSpawner.volumes)
 #if the directory being created starts to get weird names, use comment above and use below.
-#c.DockerSpawner.volumes = { '/srv/jhub_persustent/{raw_username}': work_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data'}
+c.DockerSpawner.volumes = { '/srv/jhub_persistent/{raw_username}': work_dir, '/srv/jhub_persistent/data':'/home/jovyan/work/data'}
 
-#SET YOUR jupyterhub IP otherwise YOU GET AN ERROR
-c.JupyterHub.hub_ip = '192.168.2.14' 
+#had to se the IP otherwise got an error
+c.JupyterHub.hub_ip = '192.168.2.4'
 
-
-#OPTIONAL
-#if instead of PAM user authentication you need LDAP,
-#uncomment lines below and set the correct parameters
 #LDAP Authentication
-#c.LDAPAuthenticator.bind_dn_template = [
-#    "{username}@<your domain>"
-#    ]
-#c.LDAPAuthenticator.server_address = '192.168.X.X'
-#c.LDAPAuthenticator.user_attribute = 'sAMAccountName'
-#c.LDAPAuthenticator.escape_userdn = False
-#c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
+c.LDAPAuthenticator.bind_dn_template = [
+    "{username}@itps.local"
+    ]
+c.LDAPAuthenticator.server_address = '192.168.2.2'
+c.LDAPAuthenticator.user_attribute = 'sAMAccountName'
+c.LDAPAuthenticator.escape_userdn = False
+c.LDAPAuthenticator.valid_username_regex = '^[a-zA-Z][.a-zA-Z0-9_-]*$'
+c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
 

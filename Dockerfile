@@ -10,7 +10,8 @@ RUN apt-get install zip \
     octave-quaternion \
     octave-signal \
     gnuplot \
-    r-base r-base-dev libzmq3-dev \
+    r-base r-base-dev libzmq3-dev -y
+    #nodejs -y    
 
 
 RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
@@ -23,7 +24,6 @@ RUN wget https://cmake.org/files/v3.17/cmake-3.17.1-Linux-x86_64.sh \
 RUN pip3 install \
     jupyterhub \
     notebook \
-    jupyterlab \
     numpy \
     pandas \
     ipywidgets \
@@ -37,7 +37,9 @@ RUN pip3 install \
     jupytext \
     scikit-aero \
     xlrd \
-    ipyvolume 
+    ipyvolume \
+    h5py \
+    jupyterlab
 RUN pip3 install cvxpy
 
 
@@ -46,6 +48,7 @@ RUN pip3 install cvxpy
 
 RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN jupyter labextension install bqplot
+
 RUN jupyter serverextension enable jupyterlab
 
 
@@ -54,15 +57,14 @@ RUN Rscript ./IRKernel_install_script/rk_install.r
 
 # create a user, since we don't want to run as root
 RUN useradd -m jovyan
-RUN usermod -G users jovyan
+RUN usermod -a -G users jovyan
 # Add user to staff to enable R packages install
 RUN usermod -a -G staff jovyan
 ENV HOME=/home/jovyan
 WORKDIR $HOME
 
 USER jovyan
-#RUN jupyter contrib nbextension install --user
-#RUN jupyter nbextension enable codefolding/main
+
 
 
 RUN mkdir /home/jovyan/work
