@@ -62,12 +62,14 @@ c.DockerSpawner.volumes = { '/srv/jhub_persistent/{raw_username}': work_dir, '/s
 c.JupyterHub.hub_ip = '192.168.2.4'
 
 #LDAP Authentication
-c.LDAPAuthenticator.bind_dn_template = [
-    "{username}@itps.local"
-    ]
-c.LDAPAuthenticator.server_address = '192.168.2.2'
-c.LDAPAuthenticator.user_attribute = 'sAMAccountName'
-c.LDAPAuthenticator.escape_userdn = False
-c.LDAPAuthenticator.valid_username_regex = '^[a-zA-Z][.a-zA-Z0-9_-]*$'
-c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
+# for LDAP authentication, uncomment all lines below. 
+# set the IP address of your LDAP server...
+#c.LDAPAuthenticator.bind_dn_template = [
+#    "{username}@itps.local"
+#    ]
+#c.LDAPAuthenticator.server_address = '192.168.2.2'
+#c.LDAPAuthenticator.user_attribute = 'sAMAccountName'
+#c.LDAPAuthenticator.escape_userdn = False
+#c.LDAPAuthenticator.valid_username_regex = '^[a-zA-Z][.a-zA-Z0-9_-]*$'
+#c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
 
