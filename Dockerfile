@@ -1,4 +1,4 @@
-FROM python:3.8.2
+FROM python:3.8.3
 
 RUN apt-get update
 RUN apt-get install zip \
@@ -14,12 +14,12 @@ RUN apt-get install zip \
     #nodejs -y    
 
 
-RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
 
-RUN wget https://cmake.org/files/v3.17/cmake-3.17.1-Linux-x86_64.sh \
-    && chmod 775 ./cmake-3.17.1-Linux-x86_64.sh \
-    && ./cmake-3.17.1-Linux-x86_64.sh --skip-license
+RUN wget https://cmake.org/files/v3.17/cmake-3.17.2-Linux-x86_64.sh \
+    && chmod 775 ./cmake-3.17.2-Linux-x86_64.sh \
+    && ./cmake-3.17.2-Linux-x86_64.sh --skip-license
 
 RUN pip3 install \
     jupyterhub \
@@ -39,7 +39,10 @@ RUN pip3 install \
     xlrd \
     ipyvolume \
     h5py \
-    jupyterlab
+    jupyterlab \
+    ipyleaflet \
+    mplleaflet \ 
+    gpxpy
 RUN pip3 install cvxpy
 
 
@@ -48,7 +51,6 @@ RUN pip3 install cvxpy
 
 RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN jupyter labextension install bqplot
-
 RUN jupyter serverextension enable jupyterlab
 
 
