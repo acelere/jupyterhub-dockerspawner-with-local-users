@@ -1,4 +1,4 @@
-FROM python:3.8.3
+FROM python:3.9.1
 
 RUN apt-get update
 RUN apt-get install zip \
@@ -10,20 +10,28 @@ RUN apt-get install zip \
     octave-quaternion \
     octave-signal \
     gnuplot \
-    r-base r-base-dev libzmq3-dev -y
-    #nodejs -y    
+    r-base r-base-dev libzmq3-dev -y \
+    nodejs -y \
+    pandoc \
+    texlive-xetex \
+    texlive-fonts-recommended \
+    texlive-generic-recommended -y
 
 
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_15.x | bash -
 RUN apt-get install -y nodejs
 
-RUN wget https://cmake.org/files/v3.17/cmake-3.17.2-Linux-x86_64.sh \
-    && chmod 775 ./cmake-3.17.2-Linux-x86_64.sh \
-    && ./cmake-3.17.2-Linux-x86_64.sh --skip-license
+RUN wget https://cmake.org/files/v3.19/cmake-3.19.2-Linux-x86_64.sh \
+    && chmod 775 ./cmake-3.19.2-Linux-x86_64.sh \
+    && ./cmake-3.19.2-Linux-x86_64.sh --skip-license
+
+RUN pip3 install --upgrade pip
 
 RUN pip3 install \
     jupyterhub \
     notebook \
+    jupyterlab-server \
+    jupyterlab \
     numpy \
     pandas \
     ipywidgets \
@@ -34,16 +42,30 @@ RUN pip3 install \
     octave_kernel \
     sympy \
     pytz \
-    jupytext \
     scikit-aero \
     xlrd \
     ipyvolume \
     h5py \
-    jupyterlab \
+    pyzmq \
+    ipyfilechooser \
+    jax \
+    jaxlib \
+    uncertainties \
+    nbconvert \
+    xarray \
+    seaborn \
+    jupyter-book \
+    jhsingle-native-proxy \
+    xeus-python \
+    ipympl \
     ipyleaflet \
     mplleaflet \ 
     gpxpy
+
+RUN pip3 install voila
 RUN pip3 install cvxpy
+
+RUN pip3 install torch===1.7.1 torchvision===0.8.2 -f https://download.pytorch.org/whl/torch_stable.html
 
 
 #RUN pip3 install https://github.com/ipython-contrib/jupyter_contrib_nbextensions/tarball/master
@@ -52,7 +74,7 @@ RUN pip3 install cvxpy
 RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
 RUN jupyter labextension install bqplot
 RUN jupyter serverextension enable jupyterlab
-
+RUN jupyter labextension install @jupyterlab/debugger
 
 RUN git clone https://github.com/acelere/IRKernel_install_script
 RUN Rscript ./IRKernel_install_script/rk_install.r
