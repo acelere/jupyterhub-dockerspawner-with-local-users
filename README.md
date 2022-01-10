@@ -84,6 +84,17 @@ To enable this persistent directory to be accessed by the docker user, we needed
     The setfacl makes it so that any new files have default permissions including full group access.
 
 
+Try to create a dummy file in that directory:
+```bash
+touch /srv/jhub_persistent/test.txt
+```
+If that does not work, then your current user might not be part of the "users" group.
+Then, add yourself by
+```bash
+sudo usermod -a -G users
+```
+But you will need to logout of the terminal and login again for this to take effect!
+
 At this point, we are now ready to build our container.
 Use the dockerfile from this repository, as a starter, and modify it to your needs.
 Here is a breakdown of the dockerfile with explanations. There is an example file in this repo.
