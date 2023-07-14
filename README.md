@@ -12,7 +12,8 @@
 
 ## Installation
 
-<p>Start from a fresh ubuntu install. I have used 18.04.4 on a computer connected to my local network.</p>
+<p>Start from a fresh ubuntu install. I have used 22.04 on a computer connected to my local network.</p>
+<p>I have tested as well on a Fedora 38 install. Works as well.</p>
 <p>To make things easy, after the installation was complete, I went into the router configuration and fixed the IP for that computer, using its MAC address. This is to ensure that when running JupyterHub, the IP address is fixed.</p>
 <p> We are assuming root access here </p>
 <p>Install the Universe repository:</p>
@@ -33,6 +34,15 @@ sudo ./getdocker.sh
 After installing docker, you need to add your user to the docker group to allow for it to start a docker container.
 ```bash
 sudo usermod -aG docker <your user name here> 
+```
+To start the docker daemon:
+```bash
+sudo systemctl start docker 
+```
+<p></p>
+and to enable it at startup:
+```bash
+sudo systemctl enable docker 
 ```
 Next up is to install JupyterHub. The pre-requisites instructions in  <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a> are a little outdated and the package nodejs-legacy has been deprecated. Follow this link with nodejs install instructions: <a href="https://github.com/nodesource/distributions#debinstall">nodejs_install</a>. Just remember we will need to install the same version in our container.
 
@@ -91,7 +101,7 @@ touch /srv/jhub_persistent/test.txt
 If that does not work, then your current user might not be part of the "users" group.
 Then, add yourself by
 ```bash
-sudo usermod -a -G users
+sudo usermod -a -G users <your user name here>
 ```
 But you will need to logout of the terminal and login again for this to take effect!
 
@@ -102,9 +112,9 @@ Here is a breakdown of the dockerfile with explanations. There is an example fil
 First, start with a fresh python image and install the packages you want. Below is a simple example:
 
 ```
-FROM python:3.8.2
+FROM 3.11-bullseye
 
-RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get install -y nodejs
 
 
@@ -151,14 +161,9 @@ CMD ["jupyterhub-singleuser"]
 ```
 After putting this dockerfile in your server, it is time to build the container. Run the following from within the same directory you placed the dockerfile in:
 ```bash
-docker build -t <choose_your_docker_container_name> --build-arg JUPYTERHUB_VERSION=1.1.0 . 
+docker build -t <choose_your_docker_container_name> . 
 ```
 
-It is **very important** to pin the JUPYTERHUB_VERSION, otherwise you get an error later on when the container will not start properly. The error message is typicall:
-```
-Unhandled error starting <username> server: Failed to get port info for...
-```
-You need to use **the same version** (usually latest) as of your install; and the container needs to be running the same jupyterhub version as well. Some info is provided  <a href="https://github.com/jupyterhub/jupyterhub/issues/709">pn issue 709</a>
 
 Note that if you get an error from the docker daemon, that is because you need to reboot the system before trying to build your container.
 
