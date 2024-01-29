@@ -39,7 +39,6 @@ To start the docker daemon:
 ```bash
 sudo systemctl start docker 
 ```
-<p></p>
 and to enable it at startup:
 ```bash
 sudo systemctl enable docker 
@@ -52,11 +51,24 @@ After nodejs is installed, we need to install the configurable-proxy:
 sudo npm install -g configurable-http-proxy
 ```
 
+Ubuntu uses Python at OS level and we do not want to break that. So, install the virtual environment package first:
+```bash
+sudo apt install python3-venv -y
+```
+Then, create a new virtual environment to install jupyterhub and activate it:
+
+```bash
+python3 -m venv /home/<your username>/jhub_venv
+source /home/<your username>/jhub_venv/bin/activate
+```
+
+
+
 Install jupyterhub:
 ```bash
-pip3 install jupyterhub --user
+pip3 install jupyterhub
 ```
-Because we are using pip with the --user flag, the command jupyterhub will not be in root's path and since we need to run jupyterhub as root to allow for proper authentication, we need to add it to the path:
+We need to run jupyterhub as root to allow for proper authentication, we need to add it to the path:
 ```bash
 cd /
 ln -s /home/<your username>/.local/bin/jupyterhub .
