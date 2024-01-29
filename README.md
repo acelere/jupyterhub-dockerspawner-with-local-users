@@ -63,12 +63,12 @@ source /home/<your username>/jhub_venv/bin/activate
 ```
 
 
-
 Install jupyterhub:
 ```bash
 pip3 install jupyterhub
 ```
-We need to run jupyterhub as root to allow for proper authentication, we need to add it to the path:
+
+Add it to the path, if you need to run jupyterhub as root. Otherwise skip this step:
 ```bash
 cd /
 ln -s /home/<your username>/.local/bin/jupyterhub .
@@ -230,3 +230,10 @@ And finally, we need to set the IP of the JupyterHub, otherwise you also get an 
 c.JupyterHub.hub_ip = '192.168.11.112' #THIS NUMBER IS JUST AN EXAMPLE; USE THE JHUB'S SERVER IP INSIDE THE QUOTES# 
 ```
 So, now you should be ready to roll. Just start the jupyterhub in your server and login from another computer!
+
+If, after starting the server and successfully login in, the container fails to start, sometimes it is because there are hanging containers.
+To clear them, stop jupyterhub and remove stopped containers by:
+```bash
+docker rm $(docker ps -aq)
+```
+Then, restart the jupyterhub server.
