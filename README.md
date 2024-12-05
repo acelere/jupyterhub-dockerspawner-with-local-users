@@ -186,6 +186,7 @@ Again, you can start with the one in this repo, adjusting the container name to 
 
 Key things for your jupyterhub_config.py file, as explained <a href=" https://github.com/jupyterhub/jupyterhub/blob/master/examples/bootstrap-script/jupyterhub_config.py">here</a>.
 
+
 We mount the user directory with this bit of code (inside the jupyterhub_config.py file):
 ```
 import os
@@ -201,6 +202,12 @@ def create_dir_hook(spawner):
 # Prepare the directory for pesistent storage
 c.Spawner.pre_spawn_hook = create_dir_hook
 ```
+
+And new from jupyterhub 5.0 and on, we need to allow users explicitly.
+```
+c.Authenticator.allow_all = True
+```
+
 We choose the container to be spawned here (make sure the name of the container is the same you used to build it):
 ```
 # Spawn containers from this image
