@@ -12,11 +12,10 @@
 
 ## Installation
 
-<p>Start from a fresh ubuntu install. I have used 22.04 on a computer connected to my local network.</p>
-<p>I have tested as well on a Fedora 38 install. Works as well.</p>
+<p>Start from a fresh Ubuntu or Debian install. I have used 22.04 and Debian 12.9 on a computer connected to my local network.</p>
 <p>To make things easy, after the installation was complete, I went into the router configuration and fixed the IP for that computer, using its MAC address. This is to ensure that when running JupyterHub, the IP address is fixed.</p>
-<p> We are assuming root access here </p>
-<p>Install the Universe repository:</p>
+<p> We are assuming you have sudo access here... </p>
+<p>If you are on Ubuntu, install the Universe repository:</p>
 
 ```bash
 add-apt-repository universe
@@ -43,7 +42,7 @@ and to enable it at startup:
 ```bash
 sudo systemctl enable docker 
 ```
-Next up is to install JupyterHub. The pre-requisites instructions in  <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a> are a little outdated and the package nodejs-legacy has been deprecated. Follow this link with nodejs install instructions: <a href="https://github.com/nodesource/distributions#debinstall">nodejs_install</a>. Just remember we will need to install the same version in our container.
+Next up is to install JupyterHub. The pre-requisites instructions in  <a href="https://github.com/jupyterhub/jupyterhub/blob/master/README.md">jupyterhub_github</a> are a little confusing to me. So, Follow this link with nodejs install instructions: <a href="https://github.com/nodesource/distributions#debinstall">nodejs_install</a>. Just remember we will need to install the same version in our container.
 
 After nodejs is installed, we need to install the configurable-proxy:
 
@@ -51,7 +50,7 @@ After nodejs is installed, we need to install the configurable-proxy:
 sudo npm install -g configurable-http-proxy
 ```
 
-Ubuntu uses Python at OS level and we do not want to break that. So, install the virtual environment package first:
+Linux uses Python at OS level and we do not want to break that. So, install the virtual environment package first:
 ```bash
 sudo apt install python3-venv -y
 ```
@@ -81,7 +80,7 @@ python3 -c 'import dockerspawner'
 ```
 and checking if there are any errors. If you are greeted with an error, you need to manually install dockerspawner, otherwise you are good to go.
 ```python
-pip3 install dockerspawner --user
+pip3 install dockerspawner
 ``` 
 
 Let's now create the persistent storage areas, since each docker container will be spawned "new" each time. In my case, I wanted a storage area for each user and a common area to allow for big data files exchange.
@@ -100,6 +99,12 @@ sudo chmod g+rws "$NBDIR"
 # set the default permissions for new files to group-writable
 sudo setfacl -d -m g::rwx "$NBDIR"
 ```
+
+On Debian, you may have to install the *acl* tools:
+```bash
+sudo apt install acl
+```
+
 To enable this persistent directory to be accessed by the docker user, we needed to set permissions and acl (already in the above snippet and as decribed <a href="https://github.com/jupyterhub/dockerspawner/issues/160">on issue 160</a>). As minrk explains:
 
     The s in chmod means that any new files created in that directory, by any user (including root), will be owned by the same group as the parent, which we set to 100.
@@ -124,9 +129,9 @@ Here is a breakdown of the dockerfile with explanations. There is an example fil
 First, start with a fresh python image and install the packages you want. Below is a simple example:
 
 ```
-FROM 3.11-bullseye
+FROM 3.12-bookworm
 
-RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_23.x | bash -
 RUN apt-get install -y nodejs
 
 
@@ -143,13 +148,6 @@ RUN pip3 install \
     jupyterlab
 ```
 
-Next, let's make jupyterlab default opening page:
-
-```
-RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager
-RUN jupyter labextension install bqplot
-RUN jupyter labextension install @jupyterlab/hub-extension
-```
 Create the default jupyterhub container user "jovyan" and add this user to the "users" group:
 ```
 RUN useradd -m jovyan
@@ -171,7 +169,8 @@ And last, we tell the container to run the command to start the jupyterhub-singl
 ```
 CMD ["jupyterhub-singleuser"]
 ```
-After putting this dockerfile in your server, it is time to build the container. Run the following from within the same directory you placed the dockerfile in:
+
+After putting this Dockerfile in your server, it is time to build the container. Run the following from within the same directory you placed the Dockerfile in:
 ```bash
 docker build -t <choose_your_docker_container_name> . 
 ```
@@ -190,15 +189,20 @@ Key things for your jupyterhub_config.py file, as explained <a href=" https://gi
 We mount the user directory with this bit of code (inside the jupyterhub_config.py file):
 ```
 import os
+from dockerspawner import DockerSpawner
 
 def create_dir_hook(spawner):
    username = spawner.user.name
    volume_path = os.path.join('/srv/jhub_persistent/', username)
    if not os.path.exists(volume_path):
       os.mkdir(volume_path, 0o755)
-      pass
-   pass
-...
+      print("created user directory because it did not exist")
+
+c = get_config()
+
+# Spawn single-user servers as Docker cotainers
+c.JupyterHub.spawner_class = 'dockerspawner.DockerSpawner'
+
 # Prepare the directory for pesistent storage
 c.Spawner.pre_spawn_hook = create_dir_hook
 ```
@@ -222,7 +226,9 @@ c.Spawner.default_url = '/lab'
 
 This sets the notebook directory:
 ```
+work_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
 notebook_dir = os.environ.get('DOCKER_NOTEBOOK_DIR') or '/home/jovyan/work'
+
 c.DockerSpawner.notebook_dir = notebook_dir
 ```
 
@@ -234,7 +240,7 @@ c.DockerSpawner.volumes = { '/srv/jhub_persistent/{username}': notebook_dir, '/s
 And finally, we need to set the IP of the JupyterHub, otherwise you also get an error:
 ```
 #had to se the IP otherwise got an error
-c.JupyterHub.hub_ip = '192.168.11.112' #THIS NUMBER IS JUST AN EXAMPLE; USE THE JHUB'S SERVER IP INSIDE THE QUOTES# 
+c.JupyterHub.hub_ip = '192.168.0.242' #THIS NUMBER IS JUST AN EXAMPLE; USE THE JHUB'S SERVER IP INSIDE THE QUOTES# 
 ```
 So, now you should be ready to roll. Just start the jupyterhub in your server and login from another computer!
 
